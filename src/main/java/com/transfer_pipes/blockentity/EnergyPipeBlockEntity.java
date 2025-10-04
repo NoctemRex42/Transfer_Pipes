@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.energy.IEnergyStorage;
 
@@ -90,7 +91,7 @@ public class EnergyPipeBlockEntity extends BlockEntity {
         return storage.canReceive() && storage.receiveEnergy(1, true) > 0;
     }
 
-    private static com.transfer_pipes.block.BasePipeBlock.BooleanProperty getPropertyForDirection(Direction direction) {
+    private static BooleanProperty getPropertyForDirection(Direction direction) {
         return switch (direction) {
             case NORTH -> BasePipeBlock.NORTH;
             case SOUTH -> BasePipeBlock.SOUTH;

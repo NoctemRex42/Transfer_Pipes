@@ -1,6 +1,6 @@
 package com.transfer_pipes.item;
 
-import com.transfer_pipes.Transfer_pipes;
+import com.transfer_pipes.TransferPipes;
 import com.transfer_pipes.block.ModBlocks;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -9,7 +9,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 public class ModItems {
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Transfer_pipes.MODID);
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, TransferPipes.MODID);
 
     public static final RegistryObject<Item> ITEM_PIPE = ITEMS.register("item_pipe",
             () -> new BlockItem(ModBlocks.ITEM_PIPE.get(), new Item.Properties()));

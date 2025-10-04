@@ -20,12 +20,12 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 
-@Mod(Transfer_pipes.MODID)
-public class Transfer_pipes {
+@Mod(TransferPipes.MODID)
+public class TransferPipes {
     public static final String MODID = "transfer_pipes";
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public Transfer_pipes() {
+    public TransferPipes() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         modEventBus.addListener(this::commonSetup);

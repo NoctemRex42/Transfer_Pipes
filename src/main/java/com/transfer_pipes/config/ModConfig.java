@@ -1,12 +1,13 @@
 package com.transfer_pipes.config;
 
-import com.transfer_pipes.Transfer_pipes;
+import com.transfer_pipes.TransferPipes;
+import com.transfer_pipes.TransferPipes;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 
-@Mod.EventBusSubscriber(modid = Transfer_pipes.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(modid = TransferPipes.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
@@ -42,7 +43,7 @@ public class ModConfig {
             .comment("Enable particle effects for transfer simulation (default: true)")
             .define("enableParticleEffects", true);
 
-    static final ForgeConfigSpec SPEC = BUILDER.build();
+    public static final ForgeConfigSpec SPEC = BUILDER.build();
 
     // Public static fields for easy access
     public static int itemPipeTransferRate;

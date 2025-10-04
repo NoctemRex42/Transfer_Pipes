@@ -13,7 +13,6 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class BasePipeBlock extends Block implements EntityBlock {
     // Connection properties for each direction
@@ -63,7 +62,7 @@ public abstract class BasePipeBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public void neighborChanged(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull Block block, @NotNull BlockPos fromPos, boolean isMoving) {
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
         if (!level.isClientSide) {
             BlockState newState = state
                     .setValue(NORTH, canConnectTo(level, pos, Direction.NORTH))
@@ -80,7 +79,7 @@ public abstract class BasePipeBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public @NotNull VoxelShape getShape(BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         VoxelShape shape = CORE;
 
         if (state.getValue(NORTH)) shape = Shapes.or(shape, NORTH_SHAPE);

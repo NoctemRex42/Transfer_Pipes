@@ -1,6 +1,6 @@
 package com.transfer_pipes.item;
 
-import com.transfer_pipes.Transfer_pipes;
+import com.transfer_pipes.TransferPipes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -10,7 +10,7 @@ import net.minecraftforge.registries.RegistryObject;
 
 public class ModCreativeTabs {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS =
-            DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Transfer_pipes.MODID);
+            DeferredRegister.create(Registries.CREATIVE_MODE_TAB, TransferPipes.MODID);
 
     public static final RegistryObject<CreativeModeTab> TRANSFER_PIPES_TAB = CREATIVE_MODE_TABS.register("transfer_pipes_tab",
             () -> CreativeModeTab.builder()

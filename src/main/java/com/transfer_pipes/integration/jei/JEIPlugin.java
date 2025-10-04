@@ -1,6 +1,7 @@
 package com.transfer_pipes.integration.jei;
 
-import com.transfer_pipes.Transfer_pipes;
+import com.transfer_pipes.TransferPipes;
+import com.transfer_pipes.TransferPipes;
 import com.transfer_pipes.item.ModItems;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -15,7 +16,7 @@ public class JEIPlugin implements IModPlugin {
 
     @Override
     public ResourceLocation getPluginUid() {
-        return new ResourceLocation(Transfer_pipes.MODID, "jei_plugin");
+        return new ResourceLocation(TransferPipes.MODID, "jei_plugin");
     }
 
     @Override
