@@ -1,0 +1,21 @@
+#Maximum items transferred per operation (default: 2147483647 = Integer.MAX_VALUE)
+#Range: > 1
+itemPipeTransferRate = 2147483647
+#Ticks between item transfer operations (default: 5)
+#Range: 1 ~ 200
+itemPipeCooldown = 5
+#Maximum millibuckets transferred per operation (default: 2147483647 = Integer.MAX_VALUE)
+#Range: > 1
+fluidPipeTransferRate = 2147483647
+#Ticks between fluid transfer operations (default: 5)
+#Range: 1 ~ 200
+fluidPipeCooldown = 5
+#Maximum Forge Energy transferred per operation (default: 2147483647 = Integer.MAX_VALUE)
+#Range: > 1
+energyPipeTransferRate = 2147483647
+#Ticks between energy transfer operations (default: 5)
+#Range: 1 ~ 200
+energyPipeCooldown = 5
+#Enable particle effects for transfer simulation (default: true)
+enableParticleEffects = true
+

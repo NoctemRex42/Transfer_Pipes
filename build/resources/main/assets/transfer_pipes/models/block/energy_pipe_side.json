@@ -1,0 +1,20 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "particle": "transfer_pipes:block/energy_pipe",
+    "texture": "transfer_pipes:block/energy_pipe"
+  },
+  "elements": [
+    {
+      "from": [5, 5, 0],
+      "to": [11, 11, 5],
+      "faces": {
+        "north": {"uv": [5, 5, 11, 11], "texture": "#texture"},
+        "east": {"uv": [0, 5, 5, 11], "texture": "#texture"},
+        "west": {"uv": [11, 5, 16, 11], "texture": "#texture"},
+        "up": {"uv": [5, 0, 11, 5], "texture": "#texture"},
+        "down": {"uv": [5, 11, 11, 16], "texture": "#texture"}
+      }
+    }
+  ]
+}

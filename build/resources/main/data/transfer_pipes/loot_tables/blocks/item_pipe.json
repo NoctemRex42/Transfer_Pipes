@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "transfer_pipes:energy_pipe"
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ]
+    }
+  ]
+}_pipes:item_pipe"
+}
+],
+"conditions": [
+{
+"condition": "minecraft:survives_explosion"
+}
+]
+}
+]
+}

@@ -1,0 +1,19 @@
+{
+  "block.transfer_pipes.item_pipe": "Item Transfer Pipe",
+  "block.transfer_pipes.fluid_pipe": "Fluid Transfer Pipe",
+  "block.transfer_pipes.energy_pipe": "Energy Transfer Pipe",
+
+  "itemGroup.transfer_pipes": "Transfer Pipes",
+
+  "config.transfer_pipes.itemPipeTransferRate": "Item Pipe Transfer Rate",
+  "config.transfer_pipes.itemPipeCooldown": "Item Pipe Cooldown (ticks)",
+  "config.transfer_pipes.fluidPipeTransferRate": "Fluid Pipe Transfer Rate (mB)",
+  "config.transfer_pipes.fluidPipeCooldown": "Fluid Pipe Cooldown (ticks)",
+  "config.transfer_pipes.energyPipeTransferRate": "Energy Pipe Transfer Rate (FE)",
+  "config.transfer_pipes.energyPipeCooldown": "Energy Pipe Cooldown (ticks)",
+  "config.transfer_pipes.enableParticleEffects": "Enable Particle Effects",
+
+  "jei.transfer_pipes.item_pipe.description": "Transfers items between inventories instantly. No buffer storage - items teleport directly from source to destination. Configure transfer rate and cooldown in the config file. Connects to any block with an item inventory.",
+  "jei.transfer_pipes.fluid_pipe.description": "Transfers fluids between tanks instantly. No buffer storage - fluids teleport directly from source to destination. Configure transfer rate and cooldown in the config file. Connects to any block with a fluid tank.",
+  "jei.transfer_pipes.energy_pipe.description": "Transfers Forge Energy between blocks instantly. No buffer storage - energy teleports directly from source to destination. Configure transfer rate and cooldown in the config file. Connects to any block with energy storage."
+}
