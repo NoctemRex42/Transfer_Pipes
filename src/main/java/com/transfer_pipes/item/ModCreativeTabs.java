@@ -17,6 +17,7 @@ public class ModCreativeTabs {
                     .title(Component.translatable("itemGroup.transfer_pipes"))
                     .icon(() -> new ItemStack(ModItems.ITEM_PIPE.get()))
                     .displayItems((parameters, output) -> {
+                        output.accept(ModItems.WRENCH.get());
                         output.accept(ModItems.ITEM_PIPE.get());
                         output.accept(ModItems.FLUID_PIPE.get());
                         output.accept(ModItems.ENERGY_PIPE.get());

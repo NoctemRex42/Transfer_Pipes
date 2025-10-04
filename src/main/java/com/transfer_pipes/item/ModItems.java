@@ -19,4 +19,7 @@ public class ModItems {
 
     public static final RegistryObject<Item> ENERGY_PIPE = ITEMS.register("energy_pipe",
             () -> new BlockItem(ModBlocks.ENERGY_PIPE.get(), new Item.Properties()));
+
+    public static final RegistryObject<Item> WRENCH = ITEMS.register("wrench",
+            () -> new WrenchItem(new Item.Properties().stacksTo(1)));
 }

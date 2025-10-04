@@ -40,6 +40,15 @@ public class DataGenerators {
 
         @Override
         protected void buildRecipes(Consumer<FinishedRecipe> writer) {
+            // Wrench Recipe
+            ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ModItems.WRENCH.get())
+                    .pattern("I I")
+                    .pattern(" I ")
+                    .pattern(" I ")
+                    .define('I', Items.IRON_INGOT)
+                    .unlockedBy("has_iron", has(Items.IRON_INGOT))
+                    .save(writer);
+
             // Item Pipe Recipe
             ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.ITEM_PIPE.get(), 8)
                     .pattern("IGI")

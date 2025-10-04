@@ -6,18 +6,15 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.transfer_pipes.block.BasePipeBlock.*;
+import java.util.*;
 
 public class FluidPipeBlockEntity extends BlockEntity {
     private int tickCounter = 0;
+    private static final Set<BlockPos> currentlyProcessing = new HashSet<>();
 
     public FluidPipeBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.FLUID_PIPE.get(), pos, state);
@@ -34,56 +31,78 @@ public class FluidPipeBlockEntity extends BlockEntity {
     }
 
     private void transferFluids() {
-        BlockState state = getBlockState();
-        List<IFluidHandler> inputs = new ArrayList<>();
-        List<IFluidHandler> outputs = new ArrayList<>();
+        if (currentlyProcessing.contains(worldPosition)) return;
 
-        // Gather all connected fluid handlers
+        Map<Direction, IFluidHandler> inputs = new HashMap<>();
+        Map<Direction, IFluidHandler> outputs = new HashMap<>();
+
+        Set<BlockPos> visited = new HashSet<>();
+        gatherNetworkConnections(worldPosition, visited, inputs, outputs);
+
+        if (inputs.isEmpty() || outputs.isEmpty()) return;
+
+        currentlyProcessing.addAll(visited);
+
+        for (IFluidHandler input : inputs.values()) {
+            for (IFluidHandler output : outputs.values()) {
+                if (input == output) continue;
+                if (transferBetween(input, output)) {
+                    break;
+                }
+            }
+        }
+
+        currentlyProcessing.removeAll(visited);
+    }
+
+    private void gatherNetworkConnections(BlockPos pos, Set<BlockPos> visited, Map<Direction, IFluidHandler> inputs, Map<Direction, IFluidHandler> outputs) {
+        if (visited.contains(pos)) return;
+        visited.add(pos);
+
+        BlockEntity be = level.getBlockEntity(pos);
+        if (!(be instanceof FluidPipeBlockEntity)) return;
+
+        BlockState state = level.getBlockState(pos);
+
         for (Direction direction : Direction.values()) {
-            if (!(boolean) state.getValue(getPropertyForDirection(direction))) continue;
+            BasePipeBlock.ConnectionMode mode = state.getValue(BasePipeBlock.getPropertyForDirection(direction));
 
-            BlockPos neighborPos = worldPosition.relative(direction);
+            if (mode == BasePipeBlock.ConnectionMode.NONE) continue;
+
+            BlockPos neighborPos = pos.relative(direction);
             BlockEntity neighbor = level.getBlockEntity(neighborPos);
 
             if (neighbor == null) continue;
 
-            // Skip other pipes
-            if (neighbor instanceof FluidPipeBlockEntity) continue;
+            if (neighbor instanceof FluidPipeBlockEntity && mode == BasePipeBlock.ConnectionMode.PIPE) {
+                gatherNetworkConnections(neighborPos, visited, inputs, outputs);
+                continue;
+            }
 
-            neighbor.getCapability(ForgeCapabilities.FLUID_HANDLER, direction.getOpposite()).ifPresent(handler -> {
-                // Check if this is an input or output
-                if (hasFluid(handler)) {
-                    inputs.add(handler);
-                }
-                if (canReceiveFluid(handler)) {
-                    outputs.add(handler);
-                }
-            });
-        }
-
-        // Transfer from each input to each output
-        for (IFluidHandler input : inputs) {
-            for (IFluidHandler output : outputs) {
-                if (input == output) continue;
-                transferBetween(input, output);
+            if (!(neighbor instanceof FluidPipeBlockEntity)) {
+                neighbor.getCapability(ForgeCapabilities.FLUID_HANDLER, direction.getOpposite()).ifPresent(handler -> {
+                    if (mode == BasePipeBlock.ConnectionMode.OUTPUT && hasFluid(handler)) {
+                        inputs.put(direction, handler);
+                    } else if (mode == BasePipeBlock.ConnectionMode.INPUT && canReceiveFluid(handler)) {
+                        outputs.put(direction, handler);
+                    }
+                });
             }
         }
     }
 
-    private void transferBetween(IFluidHandler source, IFluidHandler destination) {
+    private boolean transferBetween(IFluidHandler source, IFluidHandler destination) {
         int maxTransfer = ModConfig.fluidPipeTransferRate;
 
-        // Try to drain fluid from source
         FluidStack drained = source.drain(maxTransfer, IFluidHandler.FluidAction.SIMULATE);
-        if (drained.isEmpty()) return;
+        if (drained.isEmpty()) return false;
 
-        // Try to fill destination
         int filled = destination.fill(drained, IFluidHandler.FluidAction.SIMULATE);
-        if (filled <= 0) return;
+        if (filled <= 0) return false;
 
-        // Perform actual transfer
         FluidStack actualDrain = source.drain(filled, IFluidHandler.FluidAction.EXECUTE);
         destination.fill(actualDrain, IFluidHandler.FluidAction.EXECUTE);
+        return true;
     }
 
     private boolean hasFluid(IFluidHandler handler) {
@@ -103,17 +122,4 @@ public class FluidPipeBlockEntity extends BlockEntity {
         }
         return false;
     }
-
-
-            private static BooleanProperty getPropertyForDirection(Direction direction) {
-                return switch (direction) {
-                    case NORTH -> BasePipeBlock.NORTH;
-                    case SOUTH -> BasePipeBlock.SOUTH;
-                    case EAST  -> BasePipeBlock.EAST;
-                    case WEST  -> BasePipeBlock.WEST;
-                    case UP    -> BasePipeBlock.UP;
-                    case DOWN  -> BasePipeBlock.DOWN;
-                };
-            }
-
-        }
+}

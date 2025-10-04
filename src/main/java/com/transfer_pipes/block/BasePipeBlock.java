@@ -2,6 +2,7 @@ package com.transfer_pipes.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -10,18 +11,63 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class BasePipeBlock extends Block implements EntityBlock {
+
+    // Connection mode for each direction
+    public enum ConnectionMode implements StringRepresentable {
+        NONE("none", "Disabled"),
+        PIPE("pipe", "Pipe"),
+        INPUT("input", "Input"),
+        OUTPUT("output", "Output");
+
+        private final String name;
+        private final String displayName;
+
+        ConnectionMode(String name, String displayName) {
+            this.name = name;
+            this.displayName = displayName;
+        }
+
+        @Override
+        public String getSerializedName() {
+            return name;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public ConnectionMode next() {
+            return switch (this) {
+                case NONE -> INPUT;
+                case INPUT -> OUTPUT;
+                case OUTPUT -> NONE;
+                case PIPE -> PIPE; // PIPE never cycles - it's automatic only
+            };
+        }
+
+        public boolean isConnected() {
+            return this != NONE;
+        }
+
+        public boolean isPlayerConfigurable() {
+            return this != PIPE;
+        }
+    }
+
     // Connection properties for each direction
-    public static final BooleanProperty NORTH = BooleanProperty.create("north");
-    public static final BooleanProperty SOUTH = BooleanProperty.create("south");
-    public static final BooleanProperty EAST = BooleanProperty.create("east");
-    public static final BooleanProperty WEST = BooleanProperty.create("west");
-    public static final BooleanProperty UP = BooleanProperty.create("up");
-    public static final BooleanProperty DOWN = BooleanProperty.create("down");
+    public static final EnumProperty<ConnectionMode> NORTH = EnumProperty.create("north", ConnectionMode.class);
+    public static final EnumProperty<ConnectionMode> SOUTH = EnumProperty.create("south", ConnectionMode.class);
+    public static final EnumProperty<ConnectionMode> EAST = EnumProperty.create("east", ConnectionMode.class);
+    public static final EnumProperty<ConnectionMode> WEST = EnumProperty.create("west", ConnectionMode.class);
+    public static final EnumProperty<ConnectionMode> UP = EnumProperty.create("up", ConnectionMode.class);
+    public static final EnumProperty<ConnectionMode> DOWN = EnumProperty.create("down", ConnectionMode.class);
 
     // VoxelShapes for pipe rendering
     private static final VoxelShape CORE = Block.box(5, 5, 5, 11, 11, 11);
@@ -35,12 +81,12 @@ public abstract class BasePipeBlock extends Block implements EntityBlock {
     public BasePipeBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any()
-                .setValue(NORTH, false)
-                .setValue(SOUTH, false)
-                .setValue(EAST, false)
-                .setValue(WEST, false)
-                .setValue(UP, false)
-                .setValue(DOWN, false));
+                .setValue(NORTH, ConnectionMode.NONE)
+                .setValue(SOUTH, ConnectionMode.NONE)
+                .setValue(EAST, ConnectionMode.NONE)
+                .setValue(WEST, ConnectionMode.NONE)
+                .setValue(UP, ConnectionMode.NONE)
+                .setValue(DOWN, ConnectionMode.NONE));
     }
 
     @Override
@@ -53,24 +99,28 @@ public abstract class BasePipeBlock extends Block implements EntityBlock {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         return defaultBlockState()
-                .setValue(NORTH, canConnectTo(level, pos, Direction.NORTH))
-                .setValue(SOUTH, canConnectTo(level, pos, Direction.SOUTH))
-                .setValue(EAST, canConnectTo(level, pos, Direction.EAST))
-                .setValue(WEST, canConnectTo(level, pos, Direction.WEST))
-                .setValue(UP, canConnectTo(level, pos, Direction.UP))
-                .setValue(DOWN, canConnectTo(level, pos, Direction.DOWN));
+                .setValue(NORTH, getConnectionModeForDirection(level, pos, Direction.NORTH))
+                .setValue(SOUTH, getConnectionModeForDirection(level, pos, Direction.SOUTH))
+                .setValue(EAST, getConnectionModeForDirection(level, pos, Direction.EAST))
+                .setValue(WEST, getConnectionModeForDirection(level, pos, Direction.WEST))
+                .setValue(UP, getConnectionModeForDirection(level, pos, Direction.UP))
+                .setValue(DOWN, getConnectionModeForDirection(level, pos, Direction.DOWN));
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
+    public void neighborChanged(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull Block block, @NotNull BlockPos fromPos, boolean isMoving) {
         if (!level.isClientSide) {
-            BlockState newState = state
-                    .setValue(NORTH, canConnectTo(level, pos, Direction.NORTH))
-                    .setValue(SOUTH, canConnectTo(level, pos, Direction.SOUTH))
-                    .setValue(EAST, canConnectTo(level, pos, Direction.EAST))
-                    .setValue(WEST, canConnectTo(level, pos, Direction.WEST))
-                    .setValue(UP, canConnectTo(level, pos, Direction.UP))
-                    .setValue(DOWN, canConnectTo(level, pos, Direction.DOWN));
+            BlockState newState = state;
+
+            for (Direction direction : Direction.values()) {
+                ConnectionMode currentMode = state.getValue(getPropertyForDirection(direction));
+                ConnectionMode autoMode = getConnectionModeForDirection(level, pos, direction);
+
+                // Only auto-update if currently set to NONE or PIPE
+                if (currentMode == ConnectionMode.NONE || currentMode == ConnectionMode.PIPE) {
+                    newState = newState.setValue(getPropertyForDirection(direction), autoMode);
+                }
+            }
 
             if (newState != state) {
                 level.setBlock(pos, newState, 3);
@@ -79,24 +129,58 @@ public abstract class BasePipeBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    public @NotNull VoxelShape getShape(BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext context) {
         VoxelShape shape = CORE;
 
-        if (state.getValue(NORTH)) shape = Shapes.or(shape, NORTH_SHAPE);
-        if (state.getValue(SOUTH)) shape = Shapes.or(shape, SOUTH_SHAPE);
-        if (state.getValue(EAST)) shape = Shapes.or(shape, EAST_SHAPE);
-        if (state.getValue(WEST)) shape = Shapes.or(shape, WEST_SHAPE);
-        if (state.getValue(UP)) shape = Shapes.or(shape, UP_SHAPE);
-        if (state.getValue(DOWN)) shape = Shapes.or(shape, DOWN_SHAPE);
+        if (state.getValue(NORTH).isConnected()) shape = Shapes.or(shape, NORTH_SHAPE);
+        if (state.getValue(SOUTH).isConnected()) shape = Shapes.or(shape, SOUTH_SHAPE);
+        if (state.getValue(EAST).isConnected()) shape = Shapes.or(shape, EAST_SHAPE);
+        if (state.getValue(WEST).isConnected()) shape = Shapes.or(shape, WEST_SHAPE);
+        if (state.getValue(UP).isConnected()) shape = Shapes.or(shape, UP_SHAPE);
+        if (state.getValue(DOWN).isConnected()) shape = Shapes.or(shape, DOWN_SHAPE);
 
         return shape;
     }
 
-    protected abstract boolean canConnectTo(Level level, BlockPos pos, Direction direction);
-
-    protected boolean canConnectToPipe(Level level, BlockPos pos, Direction direction) {
+    private ConnectionMode getConnectionModeForDirection(Level level, BlockPos pos, Direction direction) {
         BlockPos neighborPos = pos.relative(direction);
         BlockState neighborState = level.getBlockState(neighborPos);
-        return neighborState.getBlock() instanceof BasePipeBlock;
+
+        // Check if neighbor is same type of pipe
+        if (isSamePipeType(neighborState.getBlock())) {
+            return ConnectionMode.PIPE;
+        }
+
+        // Check if can connect to block capability
+        if (canConnectTo(level, pos, direction)) {
+            return ConnectionMode.INPUT; // Default to input for new connections
+        }
+
+        return ConnectionMode.NONE;
+    }
+
+    protected abstract boolean canConnectTo(Level level, BlockPos pos, Direction direction);
+
+    protected boolean isSamePipeType(Block block) {
+        return block.getClass() == this.getClass();
+    }
+
+    public ConnectionMode getConnectionMode(BlockState state, Direction direction) {
+        return state.getValue(getPropertyForDirection(direction));
+    }
+
+    public BlockState setConnectionMode(BlockState state, Direction direction, ConnectionMode mode) {
+        return state.setValue(getPropertyForDirection(direction), mode);
+    }
+
+    public static EnumProperty<ConnectionMode> getPropertyForDirection(Direction direction) {
+        return switch (direction) {
+            case NORTH -> NORTH;
+            case SOUTH -> SOUTH;
+            case EAST -> EAST;
+            case WEST -> WEST;
+            case UP -> UP;
+            case DOWN -> DOWN;
+        };
     }
 }
